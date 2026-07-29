@@ -2,6 +2,12 @@
 export default defineNuxtConfig({
   modules: ['@pinia/nuxt'],
 
+  postcss: {
+    plugins: {
+      'postcss-nested': {},
+    },
+  },
+
   css: ['~/assets/styles/main.css'],
 
   typescript: {
