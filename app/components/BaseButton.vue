@@ -1,12 +1,12 @@
 <template>
-  <button class="base-button" :class="`base-button_${type}`">
+  <button type="button" class="base-button" :class="`base-button_${variant}`">
     <slot/>
   </button>
 </template>
 
 <script setup lang="ts">
   defineProps<{
-    type: 'primary' | 'secondary' | 'danger'
+    variant: 'primary' | 'secondary' | 'danger'
   }>()
 </script>
 
@@ -46,9 +46,7 @@
     background-color: #dc2626;
   }
 }
-.base-button:hover {
-  transform: translateY(-1px);
-}
+
 
 .base-button:active {
   transform: translateY(1px) scale(.98);
@@ -57,5 +55,6 @@
 .base-button:focus-visible {
   outline: 2px solid rgba(255, 255, 255, .2);
   outline-offset: 2px;
+  scale: 1.05 ;
 }
 </style>
