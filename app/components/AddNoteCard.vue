@@ -1,3 +1,5 @@
+<script setup lang="ts">
+</script>
 <template>
   <NuxtLink class="add-note-card" to="/notes/new">
     <span class="add-note-card__text">Добавить заметку</span>
@@ -8,12 +10,13 @@
 
 <style lang="postcss">
 .add-note-card {
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   padding: 20px;
-  max-width: 300px;
   gap: 12px;
   aspect-ratio: 1;
   border: 4px dashed #e4e2e2;
