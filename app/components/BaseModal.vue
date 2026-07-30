@@ -15,7 +15,7 @@
           </h2>
 
           <BaseButton
-              type="secondary"
+              variant="secondary"
               class="base-modal__close-button base-modal__control-button"
               @click="closeModal">
             Закрыть
