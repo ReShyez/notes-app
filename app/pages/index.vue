@@ -4,7 +4,7 @@
       <li class="main-page__list-item">
         <AddNoteCard/>
       </li>
-      <li v-for="note in mokArray" :key="note.id" class="main-page__list-item">
+      <li v-for="note in notesStore.notes" :key="note.id" class="main-page__list-item">
         <NoteCard :note="note" @delete="openDeleteModal"/>
       </li>
     </ul>
@@ -19,7 +19,7 @@
   >
     <template #actions>
       <BaseButton
-          type="secondary"
+          variant="primary"
           autofocus
           @click="closeDeleteModal"
       >
@@ -27,7 +27,7 @@
       </BaseButton>
 
       <BaseButton
-          type="danger"
+          variant="danger"
           @click="confirmDelete"
       >
         Удалить
@@ -46,6 +46,7 @@ const noteIdToDelete = ref<string | null>(null);
 
 const openDeleteModal = (noteId: string | null) => {
   noteIdToDelete.value = noteId;
+  console.log(noteIdToDelete.value)
 }
 const closeDeleteModal = () => {
   noteIdToDelete.value = null;
@@ -54,147 +55,13 @@ const closeDeleteModal = () => {
 const confirmDelete = () => {
 
   console.log('Произошло удаление заметки- позже добавится работа со сторой')
-  closeDeleteModal();
-}
-onMounted(() => {
-  notesStore.initialize();
 
-  console.log(notesStore);
-})
-
-const mokArray = [
-  {
-    id: '1',
-    name: 'Задачи на понедельник',
-    tasks: [
-
-    ],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  }, {
-    id: '2',
-    name: 'Задачи на вторник',
-    tasks: [
-      {
-        id: '1',
-        name: 'Помыть посуду',
-        complete: true,
-      },
-
-    ],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  }, {
-    id: '3',
-    name: 'Задачи на среду',
-    tasks: [
-      {
-        id: '1',
-        name: 'Помыть посуду',
-        complete: true,
-      },
-      {
-        id: '2',
-        name: 'Почистить ковер',
-        complete: false,
-      },
-      {
-        id: '3',
-        name: 'Погладить белье',
-        complete: false,
-      },
-    ],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: '4',
-    name: 'Задачи на четверг',
-    tasks: [
-      {
-        id: '1',
-        name: 'Помыть посуду',
-        complete: true,
-      },
-      {
-        id: '2',
-        name: 'Почистить ковер',
-        complete: false,
-      },
-      {
-        id: '3',
-        name: 'Погладить белье',
-        complete: false,
-      },
-      {
-        id: '4',
-        name: 'Покормить кота',
-        complete: false,
-      }
-    ],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: '5',
-    name: 'Задачи на пятницу',
-    tasks: [
-      {
-        id: '1',
-        name: 'Помыть посуду',
-        complete: true,
-      },
-      {
-        id: '2',
-        name: 'Почистить ковер',
-        complete: false,
-      },
-      {
-        id: '3',
-        name: 'Погладить белье',
-        complete: false,
-      },
-      {
-        id: '4',
-        name: 'Покормить кота',
-        complete: false,
-      }
-    ],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: '6',
-    name: 'Задачи на субботу',
-    tasks: [
-      {
-        id: '1',
-        name: 'Помыть посуду',
-        complete: true,
-      },
-      {
-        id: '2',
-        name: 'Почистить ковер',
-        complete: false,
-      },
-      {
-        id: '3',
-        name: 'Погладить белье',
-        complete: false,
-      },
-      {
-        id: '4',
-        name: 'Покормить кота',
-        complete: false,
-      }
-    ],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+  if(!!noteIdToDelete){
+    notesStore.deleteNote(toRaw(noteIdToDelete.value))
+    closeDeleteModal();
   }
-];
 
-
-
+}
 </script>
 
 <style lang="postcss" >
