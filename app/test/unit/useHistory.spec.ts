@@ -35,7 +35,7 @@ describe('useHistory', () => {
         history = useHistory(note);
     })
 
-    it('Отмена извеменения заметка (undo)', () => {
+    it('Отмена извеменения заметки (undo)', () => {
         note.name = 'Новое название';
 
         history.record({
@@ -46,7 +46,7 @@ describe('useHistory', () => {
 
         history.undo();
 
-        expect(note.name).toBe('Старое название')
+        expect(note.name).toBe('Старое название');
         }
     );
 
@@ -62,16 +62,15 @@ describe('useHistory', () => {
             history.undo();
             history.redo();
 
-            expect(note.name).toBe('Новое название')
+            expect(note.name).toBe('Новое название');
         }
     )
 
     it('Изменение статуса задачи (undo)', () => {
         const task = createTask();
-        note.tasks.push(task);
-
         task.complete = true;
 
+        note.tasks.push(task);
         history.record({
             type: 'change-task-complete',
             taskId: task.id,
@@ -81,16 +80,16 @@ describe('useHistory', () => {
 
         history.undo();
 
-        expect(note.tasks[0]?.complete).toBe(false)
+        expect(note.tasks[0]?.complete).toBe(false);
 
     });
 
 
-    it('Отмена изменение статуса задачи (redo)', () => {
+    it('Отмена изменения  статуса задачи (redo)', () => {
         const task = createTask();
-        note.tasks.push(task);
-
         task.complete = true;
+
+        note.tasks.push(task);
 
         history.record({
             type: 'change-task-complete',
@@ -102,8 +101,157 @@ describe('useHistory', () => {
         history.undo();
         history.redo();
 
-        expect(note.tasks[0]?.complete).toBe(true)
+        expect(note.tasks[0]?.complete).toBe(true);
 
     });
 
+
+    it('Изменение текста задачи (undo)', () => {
+        const task = createTask();
+        note.tasks.push(task);
+
+        task.name = 'Новое название';
+
+        history.record({
+            type: 'change-task-name',
+            taskId: task.id,
+            before: 'Старое название',
+            after: 'Новое название',
+        });
+
+        history.undo();
+
+        expect(note.tasks[0]?.name).toBe('Старое название');
+
+    });
+
+
+    it('Отмена изменения названия задачи (redo)', () => {
+        const task = createTask();
+
+
+        task.complete = true;
+
+        note.tasks.push(task);
+
+        history.record({
+            type: 'change-task-name',
+            taskId: task.id,
+            before: 'Старое название',
+            after: 'Новое название',
+        });
+
+        history.undo();
+        history.redo();
+
+        expect(note.tasks[0]?.name).toBe('Новое название')
+
+    });
+
+    it('Отмена добавления задачи (undo)', () => {
+        const task = createTask();
+
+        note.tasks.push(task);
+
+        history.record({
+            type: 'add-task',
+            task,
+            index: 0,
+        });
+
+        history.undo();
+
+        expect(note.tasks).toHaveLength(0);
+    })
+
+    it('Возвращает задачу (redo)', () => {
+        const task = createTask();
+
+        note.tasks.push(task);
+
+        history.record({
+            type: 'add-task',
+            task,
+            index: 0,
+        });
+
+        history.undo();
+        history.redo();
+
+        expect(note.tasks).toHaveLength(1);
+        expect(note.tasks[0]).toEqual(task);
+    });
+
+    it('Отмена удаления задачи (undo)', () => {
+        const task = createTask()
+
+        note.tasks.push(task);
+        note.tasks.splice(0, 1);
+
+        history.record({
+            type: 'remove-task',
+            task,
+            index: 0,
+        });
+
+        history.undo();
+
+        expect(note.tasks).toHaveLength(1);
+        expect(note.tasks[0]).toEqual(task);
+    })
+
+    it('Возврат задачи (redo)', () => {
+        const task = createTask();
+
+        note.tasks.push(task);
+        note.tasks.splice(0, 1);
+
+        history.record({
+            type: 'remove-task',
+            task,
+            index: 0,
+        });
+
+        history.undo();
+        history.redo();
+
+        expect(note.tasks).toHaveLength(0);
+    });
+
+    it('Хранится не больше 50 операций', () => {
+        for (let index = 1; index <= 52; index += 1) {
+            const before = note.name
+            const after = `Название ${index}`
+
+            note.name = after
+
+            history.record({
+                type: 'change-name',
+                before,
+                after,
+            })
+        }
+
+        for (let index = 0; index < 50; index += 1) {
+            history.undo();
+        }
+
+        expect(note.name).toBe('Название 2');
+        expect(history.canUndo.value).toBe(false);
+    })
+
+    it('Очищается история', () => {
+        note.name = 'Новое название';
+
+        history.record({
+            type: 'change-name',
+            before: 'Старое название',
+            after: 'Новое название',
+        });
+
+        history.clearHistory();
+
+        expect(history.canUndo.value).toBe(false);
+        expect(history.canRedo.value).toBe(false);
+    });
 });
