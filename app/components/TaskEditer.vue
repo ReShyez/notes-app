@@ -41,9 +41,9 @@ defineProps<{
 }>()
 
 const emit = defineEmits<{
-  'update:name': [value: string]
-  'update:complete': [value: boolean]
-  'remove': [taskId: string]
+  (event: 'update:name', value: string): void
+  (event: 'update:complete', value: boolean): void
+  (event: 'remove-task', taskId: string): void
 }>()
 
 

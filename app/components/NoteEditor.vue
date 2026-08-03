@@ -111,9 +111,10 @@
   </BaseModal>
 </template>
 <script setup lang="ts">
+
 import { useHistoryShortcuts } from '~/composables/useHistoryShortcuts'
 import {useNotesStore} from "~/store/note/store.ts";
-import type { Note } from  '#shared/types/note';
+import type { Note, NoteDraft } from  '#shared/types/note';
 import { useNoteStorage } from '~/composables/useNoteStorage';
 import {debounce} from "~/services/helpers/debounce/debounce";
 import {useHistory} from "~/composables/useHistory/useHistory.ts";
