@@ -1,13 +1,20 @@
 <template>
-  <button type="button" class="base-button" :class="`base-button_${variant}`">
+  <button :disabled="isDisabled" type="button" class="base-button" :class="`base-button_${variant}`">
     <slot/>
   </button>
 </template>
 
 <script setup lang="ts">
-  defineProps<{
-    variant: 'primary' | 'secondary' | 'danger'
-  }>()
+ withDefaults(
+     defineProps<{
+       variant: 'primary' | 'secondary' | 'danger' | 'tertiary',
+       isDisabled?: boolean,
+     }>(),
+     {
+       variant: 'primary',
+       isDisabled: false,
+     }
+ )
 </script>
 
 <style lang="postcss">
@@ -38,6 +45,13 @@
     background-color: #4f46e5;
   }
 
+  &_tertiary {
+    background-color: #807e7e;
+  }
+
+  &_tertiary:hover {
+    background-color: #a3a0a0;
+  }
   &_danger {
       background-color: #ef4444;
     }
