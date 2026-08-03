@@ -60,6 +60,8 @@
 import type { Note } from '#shared/types/note'
 import { useNotesStore } from "~/store/note/store.ts";
 import { useNotesSync } from "~/composables/useNotesSync.ts";
+import BaseModal from "~/components/base-components/BaseModal.vue";
+import BaseButton from "~/components/base-components/BaseButton.vue";
 const { removeDraft } = useNoteStorage();
 
 const route = useRoute();
@@ -119,6 +121,9 @@ useNotesSync({
   },
 })
 
+onMounted(() => {
+  notesStore.initialize()
+})
 </script>
 
 <style>

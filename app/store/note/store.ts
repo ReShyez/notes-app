@@ -24,6 +24,9 @@ export const useNotesStore = defineStore('notes', {
                 return state.notes.find((note) => note.id === id);
             }
         },
+        getInitialized: (state: NotesState) => {
+            return state.initialized;
+        }
     },
 
     actions: {

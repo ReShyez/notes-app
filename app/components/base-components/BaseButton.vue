@@ -27,6 +27,10 @@
   font-size: 18px;
   font-weight: 600;
 
+  @media (max-width: 768px) {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
   box-shadow: 0 4px 14px rgba(99, 102, 241, .25);
 
   &_primary {

@@ -1,6 +1,6 @@
 <template>
   <main class="main-page">
-    <ul class="main-page__list">
+    <ul v-if="notesStore.getInitialized" class="main-page__list">
       <li class="main-page__list-item">
         <AddNoteCard/>
       </li>
@@ -8,6 +8,8 @@
         <NoteCard :note="note" @delete="openDeleteModal"/>
       </li>
     </ul>
+
+    <div v-else class="main-page__initilize">Загрузка данных..</div>
   </main>
 
 
@@ -40,6 +42,8 @@
 <script setup lang="ts">
 import {useNotesStore} from "~/store/note/store.ts";
 import { useNotesSync } from '~/composables/useNotesSync';
+import BaseModal from "~/components/base-components/BaseModal.vue";
+import BaseButton from "~/components/base-components/BaseButton.vue";
 
 const notesStore = useNotesStore();
 
@@ -47,7 +51,6 @@ const noteIdToDelete = ref<string | null>(null);
 
 const openDeleteModal = (noteId: string | null) => {
   noteIdToDelete.value = noteId;
-  console.log(noteIdToDelete.value)
 }
 const closeDeleteModal = () => {
   noteIdToDelete.value = null;
@@ -66,7 +69,7 @@ useNotesSync({
   onChange: notes => {
     notesStore.replaceNotes(notes);
   },
-})
+});
 
 onMounted(() => {
   notesStore.initialize()
@@ -75,12 +78,17 @@ onMounted(() => {
 
 <style lang="postcss" >
 .main-page {
-  max-width: 900px;
-
   &__list {
     display: grid;
-    grid-template-columns: repeat(4, minmax(350px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 350px), 1fr));
     gap: 24px;
+  }
+
+  &__initilize {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 36px;
   }
 }
 </style>

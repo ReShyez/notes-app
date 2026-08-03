@@ -1,29 +1,29 @@
 <template>
-  <div class="note-editor__history-controls">
-    <BaseButton
-        type="button"
-        variant="tertiary"
-        :is-disabled="!canUndo"
-        @click="undo"
-    >
-      Отменить действие
-    </BaseButton>
-
-    <BaseButton
-        type="button"
-        variant="tertiary"
-        :is-disabled="!canRedo"
-        @click="redo"
-    >
-      Повторить действие
-    </BaseButton>
-  </div>
-
 
   <form class="note-editor" @submit.prevent="saveNote">
-    <h2>
+    <h2 class="note-editor__title">
       {{ mode === 'create' ? 'Создание заметки' : 'Редактирование заметки' }}
     </h2>
+
+    <div class="note-editor__history-controls">
+      <BaseButton
+          type="button"
+          variant="tertiary"
+          :is-disabled="!canUndo"
+          @click="undo"
+      >
+        Отменить действие
+      </BaseButton>
+
+      <BaseButton
+          type="button"
+          variant="tertiary"
+          :is-disabled="!canRedo"
+          @click="redo"
+      >
+        Повторить действие
+      </BaseButton>
+    </div>
     <div class="note-editor__input-field">
       <label for="note-name" class="note-editor__name-label">Название заметки</label>
       <input :value="editableNote.name" id="note-name" name="note_name" class="note-editor__name" @input="changeNoteName"/>
@@ -54,7 +54,7 @@
       >
         Удалить
       </BaseButton>
-      <BaseButton type="button" variant="danger" @click="openCancelModal">Отменить</BaseButton>
+      <BaseButton type="button" variant="tertiary" @click="openCancelModal">Отменить</BaseButton>
     </div>
   </form>
 
@@ -67,11 +67,11 @@
     <template #actions="{ close }">
       <BaseButton
           type="button"
-          variant="secondary"
+          variant="primary"
           autofocus
           @click="close"
       >
-        Продолжить
+        Остаться
       </BaseButton>
 
       <BaseButton
@@ -93,7 +93,7 @@
     <template #actions>
       <BaseButton
           type="button"
-          variant="secondary"
+          variant="tertiary"
           @click="discardDraft"
       >
         Отменить
@@ -117,6 +117,8 @@ import type { Note } from  '#shared/types/note';
 import { useNoteStorage } from '~/composables/useNoteStorage';
 import {debounce} from "~/services/helpers/debounce/debounce";
 import {useHistory} from "~/composables/useHistory/useHistory.ts";
+import BaseButton from "~/components/base-components/BaseButton.vue";
+import BaseModal from "~/components/base-components/BaseModal.vue";
 
 const props = defineProps<{
   note: Note;
@@ -408,6 +410,17 @@ watch(editableNote, () => {
     margin-bottom: 25px;
 
 
+  }
+  &__title {
+    text-align: center;
+    margin-bottom: 25px;
+  }
+
+  &__history-controls {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-bottom: 15px;
   }
   &__name {
     flex-grow: 1;

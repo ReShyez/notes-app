@@ -15,7 +15,7 @@
           </h2>
 
           <BaseButton
-              variant="secondary"
+              variant="tertiary"
               class="base-modal__close-button base-modal__control-button"
               @click="closeModal">
             Закрыть
@@ -46,6 +46,8 @@
 </template>
 
 <script setup lang="ts">
+
+import BaseButton from "~/components/base-components/BaseButton.vue";
 
 withDefaults(defineProps<{
   title?: string;

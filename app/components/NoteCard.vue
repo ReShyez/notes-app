@@ -31,11 +31,7 @@
       </span>
     </div>
     <div class="note-card__buttons">
-
-      <NuxtLink class="note-card__edit-button" :to="`/notes/${note.id}`">
-        Редактировать
-      </NuxtLink>
-
+      <BaseButton variant="primary" @click="toEdit">Редактировать</BaseButton>
       <BaseButton variant="danger" @click="emit('delete', note.id)">Удалить</BaseButton>
     </div>
 
@@ -45,6 +41,7 @@
 <script setup lang="ts">
 import type { Note } from '#shared/types/note';
 import {trimString} from "~/services/helpers/trim-string/trimstring";
+import BaseButton from "~/components/base-components/BaseButton.vue";
 
 const props = defineProps<{
   note: Note
@@ -61,6 +58,10 @@ const previewTasks = computed(()=>{
 const hideTasks = computed(()=>{
   return props.note.tasks.length - previewTasks.value.length
 })
+
+const toEdit = () => {
+  navigateTo(`/notes/${props.note.id}`)
+}
 </script>
 <style lang="postcss">
 .note-card {
@@ -70,7 +71,7 @@ const hideTasks = computed(()=>{
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  padding: 20px;
+  padding: 26px;
   gap: 12px;
   aspect-ratio: 1;
   border: 4px solid #e4e2e2;
