@@ -39,6 +39,7 @@
 
 <script setup lang="ts">
 import {useNotesStore} from "~/store/note/store.ts";
+import { useNotesSync } from '~/composables/useNotesSync';
 
 const notesStore = useNotesStore();
 
@@ -54,14 +55,22 @@ const closeDeleteModal = () => {
 
 const confirmDelete = () => {
 
-  console.log('Произошло удаление заметки- позже добавится работа со сторой')
-
-  if(!!noteIdToDelete){
+  if(noteIdToDelete.value){
     notesStore.deleteNote(toRaw(noteIdToDelete.value))
     closeDeleteModal();
   }
 
 }
+
+useNotesSync({
+  onChange: notes => {
+    notesStore.replaceNotes(notes);
+  },
+})
+
+onMounted(() => {
+  notesStore.initialize()
+})
 </script>
 
 <style lang="postcss" >
@@ -70,7 +79,7 @@ const confirmDelete = () => {
 
   &__list {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-columns: repeat(4, minmax(350px, 1fr));
     gap: 24px;
   }
 }

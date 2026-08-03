@@ -88,6 +88,10 @@ export const useNotesStore = defineStore('notes', {
             storage.removeDraft(noteId);
 
             return true;
+        },
+
+        replaceNotes(notes: Note[]): void {
+            this.notes = notes;
         }
     }
 })

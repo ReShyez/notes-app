@@ -45,27 +45,34 @@
       </BaseButton>
     </template>
   </BaseModal>
+
+
+  <BaseModal
+    v-if="isNoteDeletedModal"
+    title="Заметка удалена"
+    description="Эта заметка была удалена в другой вкладке."
+    @close="leaveNote"
+    >
+  </BaseModal>
 </template>
 
 <script setup lang="ts">
 import type { Note } from '#shared/types/note'
-import {useNotesStore} from "~/store/note/store.ts";
+import { useNotesStore } from "~/store/note/store.ts";
+import { useNotesSync } from "~/composables/useNotesSync.ts";
+const { removeDraft } = useNoteStorage();
 
 const route = useRoute();
 const noteId = computed(()=> String(route.params.id));
 
 const isOpenDeleteModal = ref<boolean>(false);
+const isNoteDeletedModal = ref<boolean>(false);
 
 const notesStore = useNotesStore();
 
 const editableNote = computed<Note | undefined>(() => {
   return notesStore.getNoteById(noteId.value)
 })
-
-console.log(editableNote)
-
-
-
 
 const saveNote = async (note: Note) => {
   notesStore.saveNote(toRaw(note));
@@ -85,18 +92,33 @@ const openDeleteModal = (): void => {
   isOpenDeleteModal.value = true
 }
 
-const confirmDelete = () => {
+const confirmDelete = async () => {
 
-  console.log('Произошло удаление заметки- позже добавится работа со сторой')
 
   notesStore.deleteNote(noteId.value)
   closeDeleteModal();
-
+  await navigateTo('/');
 }
 
-onMounted(() => {
-  notesStore.initialize()
+const leaveNote = async (): Promise<void> => {
+  removeDraft(noteId.value)
+
+  await navigateTo('/');
+}
+
+useNotesSync({
+  onChange: notes => {
+    const currentNote = notes.some(note => note.id === noteId.value);
+
+    if(!currentNote) {
+      isNoteDeletedModal.value = true;
+      return;
+    }
+
+    notesStore.replaceNotes(notes)
+  },
 })
+
 </script>
 
 <style>
