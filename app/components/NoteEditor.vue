@@ -1,11 +1,32 @@
 <template>
+  <div class="note-editor__history-controls">
+    <BaseButton
+        type="button"
+        variant="tertiary"
+        :is-disabled="!canUndo"
+        @click="undo"
+    >
+      Отменить действие
+    </BaseButton>
+
+    <BaseButton
+        type="button"
+        variant="tertiary"
+        :is-disabled="!canRedo"
+        @click="redo"
+    >
+      Повторить действие
+    </BaseButton>
+  </div>
+
+
   <form class="note-editor" @submit.prevent="saveNote">
     <h2>
       {{ mode === 'create' ? 'Создание заметки' : 'Редактирование заметки' }}
     </h2>
     <div class="note-editor__input-field">
       <label for="note-name" class="note-editor__name-label">Название заметки</label>
-      <input v-model="editableNote.name"  id="note-name" name="note_name" class="note-editor__name" />
+      <input :value="editableNote.name" id="note-name" name="note_name" class="note-editor__name" @input="changeNoteName"/>
     </div>
 
 
@@ -15,9 +36,9 @@
       <ul v-if="editableNote.tasks.length" class="note-editor__tasks-list">
         <TaskEditer v-for="task in editableNote.tasks"
                     :key="task.id" :task="task"
-                    @remove-task="removeTask"
-                    @update:complete="task.complete = $event"
-                    @update:name="task.name = $event"/>
+                    @remove="removeTask"
+                    @update:complete="changeTaskComplete(task.id, $event)"
+                    @update:name="changeTaskName(task.id, $event)"/>
       </ul>
 
       <BaseButton type="button" variant="secondary" @click="addTask">Добавить задачу</BaseButton>
@@ -62,12 +83,40 @@
       </BaseButton>
     </template>
   </BaseModal>
+
+  <BaseModal
+      v-if="isDraftModalOpen"
+      title="Восстановить черновик?"
+      description="Найдены несохранённые изменения после предыдущего редактирования."
+      @close="discardDraft"
+  >
+    <template #actions>
+      <BaseButton
+          type="button"
+          variant="secondary"
+          @click="discardDraft"
+      >
+        Отменить
+      </BaseButton>
+
+      <BaseButton
+          type="button"
+          variant="primary"
+          autofocus
+          @click="restoreDraft"
+      >
+        Восстановить
+      </BaseButton>
+    </template>
+  </BaseModal>
 </template>
 <script setup lang="ts">
+import { useHistoryShortcuts } from '~/composables/useHistoryShortcuts'
 import {useNotesStore} from "~/store/note/store.ts";
 import type { Note } from  '#shared/types/note';
 import { useNoteStorage } from '~/composables/useNoteStorage';
 import {debounce} from "~/services/helpers/debounce/debounce";
+import {useHistory} from "~/composables/useHistory/useHistory.ts";
 
 const props = defineProps<{
   note: Note;
@@ -82,8 +131,12 @@ const {
 
 const notesStore = useNotesStore()
 const editableNote: Note = reactive(structuredClone(toRaw(props.note)));
+
 const isCancelModalOpen = ref(false);
 let shouldSaveDraft = true;
+
+const pendingDraft = shallowRef<NoteDraft | null>(null);
+const isDraftModalOpen = ref(false);
 
 const emit = defineEmits<{
   (event: 'save', note: Note): void
@@ -92,13 +145,34 @@ const emit = defineEmits<{
 }>();
 
 
+const {
+  canUndo,
+  canRedo,
+  record,
+  undo,
+  redo,
+  clearHistory
+} = useHistory(editableNote)
+
 const draftKey = computed(() => {
   return props.mode === 'create' ? 'note-new' : props.note.id;
 })
 
 const saveNote = () => {
-  removeDraft(editableNote.id);
-  shouldSaveDraft = false;
+  shouldSaveDraft = false
+
+  editableNote.name =
+      editableNote.name.trim() || 'Без названия'
+
+  editableNote.tasks = editableNote.tasks
+      .map(task => ({
+        ...task,
+        name: task.name.trim(),
+      }))
+      .filter(task => task.name.length > 0)
+
+  removeDraft(draftKey.value)
+  clearHistory()
 
   emit('save', toRaw(editableNote) )
 }
@@ -112,26 +186,183 @@ const openCancelModal = () : void => {
 }
 
 const confirmCancel = () : void => {
-  removeDraft(editableNote.id);
+  removeDraft(draftKey.value);
+  clearHistory();
   isCancelModalOpen.value = false;
   shouldSaveDraft = false;
 
   emit('cancel');
 }
 
+const restoreDraft = (): void => {
+  if (!pendingDraft.value) {
+    return
+  }
+
+  Object.assign(
+      editableNote,
+      structuredClone(pendingDraft.value.note),
+  )
+
+  clearHistory()
+
+  pendingDraft.value = null
+  isDraftModalOpen.value = false
+}
+
+const discardDraft = (): void => {
+  removeDraft(draftKey.value)
+
+  pendingDraft.value = null
+  isDraftModalOpen.value = false
+}
+
+let noteNameBeforeChange: string | null = null;
+const taskNamesBeforeChange = new Map<string, string>();
+const taskNameDebounces = new Map<string, () => void>();
+
+const recordNoteName = (): void => {
+  if (noteNameBeforeChange === null ) return;
+
+  record({
+    type: 'change-name',
+    before: noteNameBeforeChange,
+    after: editableNote.name,
+  });
+
+  noteNameBeforeChange = null;
+}
+
+const commitNoteName = debounce(recordNoteName, 500)
+
+const changeNoteName = (event: Event): void => {
+  const input = event.target as HTMLInputElement
+
+  if (noteNameBeforeChange === null) {
+    noteNameBeforeChange = editableNote.name
+  }
+
+  editableNote.name = input.value
+  commitNoteName();
+}
+
 const addTask = () => {
-  editableNote.tasks.push(notesStore.createTask())
+  const task = notesStore.createTask()
+  const index = editableNote.tasks.length
+
+  editableNote.tasks.push(task);
+
+  record({
+    type: 'add-task',
+    task,
+    index,
+  })
 }
 
 const removeTask = (taskId: string): void => {
   const taskIndex = editableNote.tasks.findIndex(
       task => task.id === taskId,
+  );
+
+  if (taskIndex === -1) return;
+
+  const task = editableNote.tasks[taskIndex];
+
+  editableNote.tasks.splice(taskIndex, 1);
+
+  record({
+    type: 'remove-task',
+    task,
+    index: taskIndex,
+  });
+
+  taskNamesBeforeChange.delete(taskId);
+  taskNameDebounces.delete(taskId);
+}
+
+const changeTaskComplete = (
+    taskId: string,
+    complete: boolean,
+): void => {
+  const task = editableNote.tasks.find(
+      currentTask => currentTask.id === taskId,
   )
 
-  if (taskIndex !== -1) {
-    editableNote.tasks.splice(taskIndex, 1)
-  }
+  if (!task || task.complete === complete) return;
+
+  const previousComplete = task.complete;
+
+  task.complete = complete;
+
+  record({
+    type: 'change-task-complete',
+    taskId,
+    before: previousComplete,
+    after: complete,
+  })
 }
+
+const recordTaskName = (taskId: string): void => {
+  const task = editableNote.tasks.find(
+      currentTask => currentTask.id === taskId,
+  );
+
+  const before = taskNamesBeforeChange.get(taskId);
+
+  if(!task || before === undefined) return;
+
+  record({
+    type:'change-task-name',
+    taskId,
+    before,
+    after: task.name,
+  });
+
+  taskNamesBeforeChange.delete(taskId);
+};
+
+const getTaskNameDebounce = (
+    taskId: string,
+): (() => void) => {
+  const existingDebounce = taskNameDebounces.get(taskId)
+
+  if (existingDebounce) {
+    return existingDebounce
+  }
+
+  const newDebounce = debounce(() => {
+    recordTaskName(taskId)
+  }, 500)
+
+  taskNameDebounces.set(taskId, newDebounce)
+
+  return newDebounce
+};
+
+const changeTaskName = (
+    taskId: string,
+    name: string,
+): void => {
+  const task = editableNote.tasks.find(
+      task => task.id === taskId,
+  )
+
+  if (!task) {
+    return
+  }
+
+  if (!taskNamesBeforeChange.has(taskId)) {
+    taskNamesBeforeChange.set(taskId, task.name)
+  }
+
+  task.name = name
+
+  const saveChangeDebounced = getTaskNameDebounce(taskId)
+
+  saveChangeDebounced()
+};
+
+
 
 const saveDraftDebounce = debounce((note): void => {
   if(!shouldSaveDraft) return;
@@ -139,14 +370,20 @@ const saveDraftDebounce = debounce((note): void => {
   saveDraft(draftKey.value, note)
 }, 500)
 
+useHistoryShortcuts({
+  undo,
+  redo,
+  canUndo,
+  canRedo,
+})
+
 onMounted(() => {
   const draft = loadDraft(draftKey.value);
 
-  if (!draft) {
-    return;
-  }
+  if (!draft) return;
 
-  Object.assign(editableNote, structuredClone(draft.note));
+  pendingDraft.value = structuredClone(draft)
+  isDraftModalOpen.value = true
 })
 
 
