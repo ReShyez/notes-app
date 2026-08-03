@@ -28,7 +28,7 @@
       >
     </div>
 
-    <button type="button" class="task-editor-item__delete-button" aria-label="Удалить задачу"   @click="emit('remove', task.id)">
+    <button type="button" class="task-editor-item__delete-button" aria-label="Удалить задачу" @click="emit('remove-task', task.id)">
       <span class="task-editor-item__button-icon" aria-hidden="true"></span>
     </button>
   </li>
