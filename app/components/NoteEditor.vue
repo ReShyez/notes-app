@@ -273,11 +273,14 @@ const removeTask = (taskId: string): void => {
 
   editableNote.tasks.splice(taskIndex, 1);
 
-  record({
-    type: 'remove-task',
-    task,
-    index: taskIndex,
-  });
+  if(task) {
+    record({
+      type: 'remove-task',
+      task,
+      index: taskIndex,
+    });
+  }
+
 
   taskNamesBeforeChange.delete(taskId);
   taskNameDebounces.delete(taskId);
@@ -367,7 +370,7 @@ const changeTaskName = (
 
 
 
-const saveDraftDebounce = debounce((note): void => {
+const saveDraftDebounce = debounce((note : Note): void => {
   if(!shouldSaveDraft) return;
 
   saveDraft(draftKey.value, note)

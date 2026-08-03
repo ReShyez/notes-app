@@ -24,8 +24,8 @@
     "happy-dom": "^20.11.1",
     "postcss-nested": "^8.0.0",
     "prettier": "3.9.6",
-    "typescript": "^7.0.2",
+    "typescript": "6.0.2",
     "vitest": "^4.1.10",
-    "vue-tsc": "^3.3.8"
+    "vue-tsc": "3.3.9"
   }
 }
