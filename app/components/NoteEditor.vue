@@ -36,7 +36,7 @@
       <ul v-if="editableNote.tasks.length" class="note-editor__tasks-list">
         <TaskEditer v-for="task in editableNote.tasks"
                     :key="task.id" :task="task"
-                    @remove="removeTask"
+                    @remove-task="removeTask"
                     @update:complete="changeTaskComplete(task.id, $event)"
                     @update:name="changeTaskName(task.id, $event)"/>
       </ul>
