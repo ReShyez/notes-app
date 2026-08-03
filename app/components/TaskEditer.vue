@@ -28,7 +28,7 @@
       >
     </div>
 
-    <button class="task-editor-item__delete-button" aria-label="Удалить задачу">
+    <button type="button" class="task-editor-item__delete-button" aria-label="Удалить задачу"   @click="emit('remove', task.id)">
       <span class="task-editor-item__button-icon" aria-hidden="true"></span>
     </button>
   </li>
@@ -43,7 +43,7 @@ defineProps<{
 const emit = defineEmits<{
   'update:name': [value: string]
   'update:complete': [value: boolean]
-  removeTask: [taskId: string]
+  'remove': [taskId: string]
 }>()
 
 
